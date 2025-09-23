@@ -1,0 +1,6 @@
+@Byway.Presentation_HostAddress = http://localhost:5192
+
+GET {{Byway.Presentation_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
