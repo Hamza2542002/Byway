@@ -1,9 +1,27 @@
 ﻿namespace Byway.Core.Models;
 
-public class ServiceResultModel
+public class ServiceResultModel<T>
 {
-    public bool Success { get; set; }
+    public bool IsSuccess { get; set; }
     public string? Message { get; set; }
-    public object? Data { get; set; }
-    public List<string>? Errors { get; set; }
+    public T? Data { get; set; }
+
+    public static ServiceResultModel<T> Success(T? data, string message = "")
+    {
+        return new ServiceResultModel<T>
+        {
+            IsSuccess = true,
+            Message = message,
+            Data = data
+        };
+    }
+    public static ServiceResultModel<T> Failure(string message)
+    {
+        return new ServiceResultModel<T>
+        {
+            IsSuccess = false,
+            Message = message,
+            Data = default
+        };
+    }
 }

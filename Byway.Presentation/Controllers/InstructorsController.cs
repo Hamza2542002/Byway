@@ -1,6 +1,7 @@
 ﻿using Byway.Core.Entities;
 using Byway.Core.IRepositories;
 using Byway.Core.IServices;
+using Byway.Core.Models.Instructors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,9 +18,9 @@ namespace Byway.Presentation.Controllers
             _instructorService = instructorService;
         }
         [HttpGet]
-        public async Task<IActionResult> GetInstructors(int pageNumber = 1, int pageSize = 10, string? search = null)
+        public async Task<IActionResult> GetInstructors([FromQuery]InstructorQueryModel instructorQueryModel)
         {
-            var result = await _instructorService.GetPaginatedInstructors(pageNumber, pageSize, search);
+            var result = await _instructorService.GetPaginatedInstructors(instructorQueryModel);
             return Ok(result.Data);
         }
     }

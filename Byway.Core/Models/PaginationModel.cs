@@ -2,7 +2,7 @@
 
 namespace Byway.Core.Models;
 
-public class PaginationModel<T> : ServiceResultModel  where T : class
+public class PaginationModel<T> : ServiceResultModel<T>
 {
     public int PageNumber { get; set; }
     public int PageSize { get; set; }

@@ -1,11 +1,12 @@
 ﻿using Byway.Core.Dtos.Instructor;
 using Byway.Core.Models;
+using Byway.Core.Models.Instructors;
 
 namespace Byway.Core.IServices;
 
 public interface IInstructorService
 {
-    Task<PaginationModel<InstructorToReturnDto>> GetPaginatedInstructors(int pageNumber, int pageSize, string? search = null);
+    Task<PaginationModel<List<InstructorToReturnDto>>> GetPaginatedInstructors(InstructorQueryModel instructorQueryModel);
     Task<InstructorToReturnDto> GetInstructor(Guid id);
     Task<InstructorToReturnDto> CreateInstructor(InstructorDto instructorDto);
 }
