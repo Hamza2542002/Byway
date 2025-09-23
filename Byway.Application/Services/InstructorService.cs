@@ -97,7 +97,9 @@ public class InstructorService : IInstructorService
         var instructorRepo = _unitOfWork.GetRepository<Instructor>();
         var instructor = await instructorRepo.GetByIdAsync(id)
             ?? throw new NotFoundException("Instructor not found");
-        // check if instructor has courses before deleting.if he has course throw exception (instructor cannot be deleted as he/she has courses)
+        var courseRepo = _unitOfWork.GetRepository<Course>();
+        if(await courseRepo.GetOneAsync(c => c.InstructorId == id) is not null)
+            throw new BadRequestException("Instructor cannot be deleted as he / she has courses");
         instructorRepo.Delete(instructor);
         await _unitOfWork.CompleteAsync();
         return ServiceResultModel<bool>
