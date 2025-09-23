@@ -61,7 +61,7 @@ public class InstructorService : IInstructorService
 
         IGenericRepository<Instructor>? instructoRepo = _unitOfWork.GetRepository<Instructor>();
         Func<IQueryable<Instructor>, IQueryable<Instructor>> query =
-            q => q.Include(i => i.Courses).ThenInclude(c => c.Category);
+            q => q.Include(i => i.Courses!).ThenInclude(c => c.Category);
 
         Instructor? instructor = await instructoRepo.GetByIdAsync(id, query: query)
             ?? throw new NotFoundException("Instructor not found");
