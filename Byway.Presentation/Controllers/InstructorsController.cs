@@ -21,7 +21,13 @@ namespace Byway.Presentation.Controllers
         public async Task<IActionResult> GetInstructors([FromQuery]InstructorQueryModel instructorQueryModel)
         {
             var result = await _instructorService.GetPaginatedInstructors(instructorQueryModel);
-            return Ok(result.Data);
+            return Ok(result);
+        }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetInstructors([FromRoute]Guid id)
+        {
+            var result = await _instructorService.GetInstructorById(id);
+            return Ok(result);
         }
     }
 }

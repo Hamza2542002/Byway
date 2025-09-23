@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using Byway.Core.Dtos.Instructor;
 using Byway.Core.Entities;
+using Byway.Core.Exceptions;
 using Byway.Core.IRepositories;
 using Byway.Core.IServices;
 using Byway.Core.Models;
 using Byway.Core.Models.Instructors;
+using Microsoft.EntityFrameworkCore;
 
 namespace Byway.Application.Services;
 
@@ -13,7 +15,7 @@ public class InstructorService : IInstructorService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public InstructorService(IUnitOfWork unitOfWork,IMapper mapper)
+    public InstructorService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -28,7 +30,7 @@ public class InstructorService : IInstructorService
         var search = instructorQueryModel.Search;
         var jobTitle = instructorQueryModel.JobTitle ?? null;
 
-        Func<IQueryable<Instructor>,IQueryable<Instructor>> query = query => query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+        Func<IQueryable<Instructor>, IQueryable<Instructor>> query = query => query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
         if (!string.IsNullOrEmpty(search))
         {
             query += (q => q.Where(i => (i != null && i.Name != null) && (i.Name.Contains(search) || i.Description.Contains(search))));
@@ -53,12 +55,25 @@ public class InstructorService : IInstructorService
             Message = "Instructors retrieved successfully"
         };
     }
-    public Task<InstructorToReturnDto> CreateInstructor(InstructorDto instructorDto)
+    public async Task<ServiceResultModel<InstructorToReturnDto>> GetInstructorById(Guid id)
     {
-        throw new NotImplementedException();
-    }
+        if (id == Guid.Empty) throw new BadRequestException("Invalid ID");
 
-    public Task<InstructorToReturnDto> GetInstructor(Guid id)
+        IGenericRepository<Instructor>? instructoRepo = _unitOfWork.GetRepository<Instructor>();
+        Func<IQueryable<Instructor>, IQueryable<Instructor>> query =
+            q => q.Include(i => i.Courses).ThenInclude(c => c.Category);
+
+        Instructor? instructor = await instructoRepo.GetByIdAsync(id, query: query)
+            ?? throw new NotFoundException("Instructor not found");
+
+        return new ServiceResultModel<InstructorToReturnDto>
+        {
+            Data = _mapper.Map<InstructorToReturnDto>(instructor),
+            IsSuccess = true,
+            Message = "Instructor retrieved successfully"
+        };
+    }
+    public Task<InstructorToReturnDto> CreateInstructor(InstructorDto instructorDto)
     {
         throw new NotImplementedException();
     }

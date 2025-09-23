@@ -1,9 +1,9 @@
 ﻿using Byway.Core.Entities;
 using Byway.Core.Entities.Enums;
 
-namespace Byway.Core.Dtos;
+namespace Byway.Core.Dtos.Instructor;
 
-public class CourseDto
+public class InstructorCourseDto
 {
     public Guid Id { get; set; }
     public string? Name { get; set; }
@@ -13,9 +13,8 @@ public class CourseDto
     public double TotalHours { get; set; }
     public double Rate { get; set; }
     public string? Certification { get; set; }
-    public CourseLevel Level { get; set; }
-    public Guid InstructorId { get; set; }
+    public string? Level { get; set; }
     public Guid CategoryId { get; set; }
-    public Category? Category { get; set; }
+    public string? CategoryName { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 }
