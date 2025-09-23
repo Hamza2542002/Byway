@@ -1,7 +1,7 @@
 ﻿using Byway.Core.Entities;
 using Byway.Core.Entities.Enums;
 
-namespace Byway.Core.Dtos;
+namespace Byway.Core.Dtos.Course;
 
 public class CourseDto
 {
