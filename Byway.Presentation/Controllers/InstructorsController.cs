@@ -62,5 +62,11 @@ namespace Byway.Presentation.Controllers
             var result = await _instructorService.UpdateInstructor(id, intructorDto);
             return Ok(result);
         }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteInstructor([FromRoute] Guid id)
+        {
+            var result = await _instructorService.DeleteInstructor(id);
+            return Ok(result);
+        }
     }
 }

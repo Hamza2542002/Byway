@@ -92,4 +92,15 @@ public class InstructorService : IInstructorService
         return ServiceResultModel<InstructorToReturnDto>
             .Success(_mapper.Map<InstructorToReturnDto>(instructor), "Instructor Updated Successfully");
     }
+    public async Task<ServiceResultModel<bool>> DeleteInstructor(Guid id)
+    {
+        var instructorRepo = _unitOfWork.GetRepository<Instructor>();
+        var instructor = await instructorRepo.GetByIdAsync(id)
+            ?? throw new NotFoundException("Instructor not found");
+        // check if instructor has courses before deleting.if he has course throw exception (instructor cannot be deleted as he/she has courses)
+        instructorRepo.Delete(instructor);
+        await _unitOfWork.CompleteAsync();
+        return ServiceResultModel<bool>
+            .Success(true, "Instructor Deleted Successfully");
+    }
 }

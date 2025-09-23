@@ -10,4 +10,5 @@ public interface IInstructorService
     Task<ServiceResultModel<InstructorToReturnDto>> GetInstructorById(Guid id);
     Task<ServiceResultModel<InstructorToReturnDto>> CreateInstructor(InstructorDto instructorDto);
     Task<ServiceResultModel<InstructorToReturnDto>> UpdateInstructor(Guid id, InstructorDto instructorDto);
+    Task<ServiceResultModel<bool>> DeleteInstructor(Guid id);
 }
