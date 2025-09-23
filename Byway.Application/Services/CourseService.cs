@@ -26,7 +26,7 @@ public class CourseService : ICourseService
         var pageNumber = courseQueryModel.Page;
         var pageSize = courseQueryModel.PageSize;
         var totalHours = courseQueryModel.TotalHours;
-        var name = courseQueryModel.Name?.ToLower();
+        var name = courseQueryModel.Name;
         var cost = courseQueryModel.Cost;
         var rate = courseQueryModel.Rate;
         var level = courseQueryModel.Level?.ToLower();
@@ -35,7 +35,7 @@ public class CourseService : ICourseService
         Func<IQueryable<Course>, IQueryable<Course>> query = default!;
         if (!string.IsNullOrEmpty(name))
         {
-            query += query => query.Where(c => c.Name!.ToLower() == name);
+            query += query => query.Where(c => c.Name!.Contains(name));
         }
         if (categoryId != Guid.Empty)
         {
