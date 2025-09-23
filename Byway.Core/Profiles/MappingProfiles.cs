@@ -10,7 +10,9 @@ public class MappingProfiles : Profile
     public MappingProfiles()
     {
         CreateMap<Instructor, InstructorToReturnDto>();
+        CreateMap<InstructorDto, Instructor>()
+            .ForMember(des => des.ImageUrl, o => o.Ignore());
         CreateMap<Course, InstructorCourseDto>()
-            .ForMember(des => des.CategoryName,o=> o.MapFrom(s => s.Category.Name));
+            .ForMember(des => des.CategoryName, o => o.MapFrom(s => s.Category.Name));
     }
 }

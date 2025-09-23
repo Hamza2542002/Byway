@@ -1,12 +1,17 @@
 using Byway.Application.Services;
+using Byway.Core.Dtos.Instructor;
 using Byway.Core.IRepositories;
 using Byway.Core.IServices;
 using Byway.Core.Profiles;
+using Byway.Core.Validators.Instructors;
 using Byway.Persestance;
 using Byway.Persestance.Data;
 using Byway.Persestance.Repositories;
+using Byway.Presentation.Middlewares;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
 namespace Byway.Presentation;
 
 public class Program
@@ -21,9 +26,18 @@ public class Program
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IInstructorService, InstructorService>();
 
+        builder.Services.AddFluentValidationAutoValidation();
+        builder.Services.AddValidatorsFromAssemblyContaining<AddInstructorValidator>();
+        builder.Services.AddScoped<IValidator<InstructorDto>, AddInstructorValidator>();
+
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
         builder.Services.AddOpenApi();
+
+        builder.Services.Configure<ApiBehaviorOptions>(options =>
+        {
+            options.SuppressModelStateInvalidFilter = true;
+        });
 
         var app = builder.Build();
         if (app.Environment.IsDevelopment())
@@ -32,7 +46,7 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-
+        app.UseMiddleware<ExceptionMiddleware>();
         app.UseAuthorization();
 
 

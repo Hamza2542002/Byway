@@ -10,6 +10,6 @@ public interface IGenericRepository<T> where T : BaseEntity
     Task<T?> GetByIdAsync(Guid id, Func<IQueryable<T>, IQueryable<T>>? query = null);
     Task<T?> GetOneAsync(Expression<Func<T,bool>> predicate,Func<IQueryable<T>, IQueryable<T>>? query = null);
     Task AddAsync(T entity);
-    void UpdateAsync(T entity);
-    void DeleteAsync(T entity);
+    void Update(T entity);
+    void Delete(T entity);
 }

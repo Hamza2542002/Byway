@@ -1,5 +1,4 @@
 ﻿using Byway.Core.Exceptions;
-
 namespace Byway.Presentation.Middlewares;
 
 public class ExceptionMiddleware
@@ -30,7 +29,6 @@ public class ExceptionMiddleware
         catch (Exception ex)
         {
             httpContext.Response.ContentType = "application/json";
-            httpContext.Response.ContentLength = 0;
             httpContext.Response.StatusCode = 500;
             var response = new
             {
@@ -45,7 +43,6 @@ public class ExceptionMiddleware
     private static Task HandleExceptionAsync(HttpContext httpContext, BaseException ex)
     {
         httpContext.Response.ContentType = "application/json";
-        httpContext.Response.ContentLength = 0;
         httpContext.Response.StatusCode = ex.StatusCode;
         var response = new
         {

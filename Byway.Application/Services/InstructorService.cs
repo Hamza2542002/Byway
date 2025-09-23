@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Byway.Core.Dtos.Instructor;
 using Byway.Core.Entities;
+using Byway.Core.Entities.Enums;
 using Byway.Core.Exceptions;
 using Byway.Core.IRepositories;
 using Byway.Core.IServices;
@@ -66,15 +67,29 @@ public class InstructorService : IInstructorService
         Instructor? instructor = await instructoRepo.GetByIdAsync(id, query: query)
             ?? throw new NotFoundException("Instructor not found");
 
-        return new ServiceResultModel<InstructorToReturnDto>
-        {
-            Data = _mapper.Map<InstructorToReturnDto>(instructor),
-            IsSuccess = true,
-            Message = "Instructor retrieved successfully"
-        };
+        return ServiceResultModel<InstructorToReturnDto>
+            .Success(_mapper.Map<InstructorToReturnDto>(instructor), "Instructor retrieved successfully");
     }
-    public Task<InstructorToReturnDto> CreateInstructor(InstructorDto instructorDto)
+    public async Task<ServiceResultModel<InstructorToReturnDto>> CreateInstructor(InstructorDto instructorDto)
     {
-        throw new NotImplementedException();
+        //var validatoe = 
+        IGenericRepository<Instructor>? instructorRepo = _unitOfWork.GetRepository<Instructor>();
+        Instructor? instructor = _mapper.Map<Instructor>(instructorDto);
+        instructor.ImageUrl = "https://www.istockphoto.com/photos/user-profile"; // use the cloudinary service to upload image and get url
+        await instructorRepo.AddAsync(instructor);
+        await _unitOfWork.CompleteAsync();
+        return ServiceResultModel<InstructorToReturnDto>
+            .Success(_mapper.Map<InstructorToReturnDto>(instructor), "Instructor Created Successfully");
+    }
+    public async Task<ServiceResultModel<InstructorToReturnDto>> UpdateInstructor(Guid id, InstructorDto instructorDto)
+    {
+        var instructorRepo = _unitOfWork.GetRepository<Instructor>();
+        var instructor = await instructorRepo.GetByIdAsync(id)
+            ?? throw new NotFoundException("Instructor not found");
+        _mapper.Map(instructorDto,instructor);
+        instructorRepo.Update(instructor);
+        await _unitOfWork.CompleteAsync();
+        return ServiceResultModel<InstructorToReturnDto>
+            .Success(_mapper.Map<InstructorToReturnDto>(instructor), "Instructor Updated Successfully");
     }
 }

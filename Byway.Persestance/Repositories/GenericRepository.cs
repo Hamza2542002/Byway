@@ -58,12 +58,12 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
         await _dbContext.Set<T>().AddAsync(entity);
     }
 
-    public void DeleteAsync(T entity)
+    public void Delete(T entity)
     {
         _dbContext.Set<T>().Remove(entity);
     }
 
-    public void UpdateAsync(T entity)
+    public void Update(T entity)
     {
         _dbContext.Set<T>().Update(entity);
     }
