@@ -32,38 +32,37 @@ public class CourseService : ICourseService
         var level = courseQueryModel.Level?.ToLower();
         var categoryId = courseQueryModel.CategoryId;
 
-        Func<IQueryable<Course>, IQueryable<Course>> query = default!;
-        if (!string.IsNullOrEmpty(name))
-        {
-            query += query => query.Where(c => c.Name!.Contains(name));
-        }
-        if (categoryId != Guid.Empty)
-        {
-            query += query => query.Where(c => c.CategoryId == categoryId);
-        }
-        if (totalHours > 0)
-        {
-            query += query => query.Where(c => c.TotalHours == totalHours);
-        }
-        if (cost > 0)
-        {
-            query += query => query.Where(c => c.Cost == cost);
-        }
-        if (rate > 0)
-        {
-            query += query => query.Where(c => c.Rate == rate);
-        }
-        if (!string.IsNullOrEmpty(level))
-        {
-            query += query => query.Where(c => c.Level.ToString().ToLower() == level);
-        }
-
-        var totalRecords = await courseRepository.GetCountAsync(query);
-
-        query += query => query
+        Func<IQueryable<Course>, IQueryable<Course>> query = query => query
                 .Skip((pageNumber - 1) * pageSize).Take(pageSize)
                 .OrderByDescending(c => c.CreatedAt)
                 .Include(c => c.Lectures);
+
+        if (!string.IsNullOrEmpty(name))
+        {
+            query = (query => query.Where(c => c.Name!.Contains(name)));
+        }
+        if (categoryId != Guid.Empty)
+        {
+            query = (query => query.Where(c => c.CategoryId == categoryId));
+        }
+        if (totalHours > 0)
+        {
+            query = (query => query.Where(c => c.TotalHours <= totalHours));
+        }
+        if (cost > 0)
+        {
+            query = (query => query.Where(c => c.Cost <= cost));
+        }
+        if (rate > 0)
+        {
+            query = (query => query.Where(c => c.Rate == rate));
+        }
+        if (!string.IsNullOrEmpty(level))
+        {
+            query = (query => query.Where(c => c.Level.ToString().ToLower() == level));
+        }
+
+        var totalRecords = await courseRepository.GetCountAsync(query);
 
         var courses = await courseRepository.GetAllAsync(query);
 
