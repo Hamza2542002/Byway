@@ -19,4 +19,5 @@ public class Course : BaseEntity
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public List<CourseLecture>? Lectures { get; set; }
+    public List<CourseEnrollment>? Enrollments { get; set; }
 }

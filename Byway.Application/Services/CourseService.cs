@@ -26,7 +26,7 @@ public class CourseService : ICourseService
     public async Task<PaginationModel<List<CourseListToReturnDto>>> GetAllCoursesAsync(CourseQueryModel courseQueryModel)
     {
         var courseRepository = _unitOfWork.GetRepository<Course>();
-        var pageNumber = courseQueryModel.Page;
+        var pageNumber = courseQueryModel.PageNumber;
         var pageSize = courseQueryModel.PageSize;
         var totalHours = courseQueryModel.TotalHours;
         var name = courseQueryModel.Name;
@@ -158,6 +158,10 @@ public class CourseService : ICourseService
         var existingCourse = await courseRepository.GetByIdAsync(id)
             ?? throw new NotFoundException("Course not found");
 
+        var enrollmentInstructor = _unitOfWork.GetRepository<CourseEnrollment>();
+        var enrollments = await enrollmentInstructor.GetAllAsync(q => q.Where(e => e.CourseId == id));
+        if(enrollments.Any())
+            throw new BadRequestException("Cannot delete course with active enrollments");
         courseRepository.Delete(existingCourse);
 
         if(existingCourse.ImageUrl is not null)

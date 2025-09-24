@@ -5,7 +5,7 @@ namespace Byway.Core.Models.Courses;
 
 public class CourseQueryModel
 {
-    public int Page { get; set; }
+    public int PageNumber { get; set; }
     public int PageSize { get; set; }
     public string? Name { get; set; }
     public decimal Cost { get; set; }

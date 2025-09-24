@@ -58,6 +58,26 @@ public class InstructorService : IInstructorService
             Message = "Instructors retrieved successfully"
         };
     }
+    public async Task<PaginationModel<List<InstructorToReturnDto>>> GetTopRatedInstructors(InstructorQueryModel instructorQueryModel)
+    {
+        var instructoRepo = _unitOfWork.GetRepository<Instructor>();
+        Func<IQueryable<Instructor>, IQueryable<Instructor>> query = query => query
+            .OrderByDescending(i => i.Rate)
+            .Skip((instructorQueryModel.Page - 1) * instructorQueryModel.PageSize)
+            .Take(instructorQueryModel.PageSize);
+        var instructors = await instructoRepo.GetAllAsync(query);
+        var totalRecords = instructors.Count;
+        return new PaginationModel<List<InstructorToReturnDto>>
+        {
+            PageNumber = instructorQueryModel.Page,
+            PageSize = totalRecords,
+            TotalPages = instructors.Count,
+            TotalRecords = totalRecords,
+            Data = _mapper.Map<List<InstructorToReturnDto>>(instructors),
+            IsSuccess = true,
+            Message = "Top rated instructors retrieved successfully"
+        };
+    }
     public async Task<ServiceResultModel<InstructorToReturnDto>> GetInstructorById(Guid id)
     {
         if (id == Guid.Empty) throw new BadRequestException("Invalid ID");
@@ -82,7 +102,8 @@ public class InstructorService : IInstructorService
 
         if (instructorDto.Image is not null)
             instructor.ImageUrl = await _imageService.UploadImageAsync(instructorDto.Image,instructor.Id);
-        instructor.ImageUrl = "https://www.istockphoto.com/photos/user-profile";
+        else
+            instructor.ImageUrl = "https://www.istockphoto.com/photos/user-profile";
 
         await _unitOfWork.CompleteAsync();
 

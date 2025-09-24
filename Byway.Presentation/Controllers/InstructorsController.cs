@@ -28,12 +28,19 @@ namespace Byway.Presentation.Controllers
             var result = await _instructorService.GetPaginatedInstructors(instructorQueryModel);
             return Ok(result);
         }
+        [HttpGet("top-rated")]
+        public async Task<IActionResult> GetTopRatedInstructors([FromQuery] InstructorQueryModel instructorQueryModel)
+        {
+            var result = await _instructorService.GetTopRatedInstructors(instructorQueryModel);
+            return Ok(result);
+        }
         [HttpGet("{id}")]
         public async Task<IActionResult> GetInstructors([FromRoute]Guid id)
         {
             var result = await _instructorService.GetInstructorById(id);
             return Ok(result);
         }
+        
         [HttpPost]
         public async Task<IActionResult> CreateInstructor([FromForm] InstructorDto intructorDto)
         {

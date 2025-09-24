@@ -1,5 +1,6 @@
 using Byway.Application.Services;
 using Byway.Core.Dtos.Instructor;
+using Byway.Core.Entities;
 using Byway.Core.Helpers;
 using Byway.Core.IRepositories;
 using Byway.Core.IServices;
@@ -11,6 +12,7 @@ using Byway.Persestance.Repositories;
 using Byway.Presentation.Middlewares;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 namespace Byway.Presentation;
@@ -27,6 +29,7 @@ public class Program
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IInstructorService, InstructorService>();
         builder.Services.AddScoped<ICourseService, CourseService>();
+        builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 
         builder.Services.AddFluentValidationAutoValidation();
         builder.Services.AddValidatorsFromAssemblyContaining<AddInstructorValidator>();
@@ -40,6 +43,9 @@ public class Program
         builder.Services.AddScoped<IEmailService, EmailService>();
         builder.Services.Configure<EmailConfiguration>(builder.Configuration.GetSection("EmailConfiguration"));
         
+        builder.Services.AddIdentity<ApplicationUser,IdentityRole<Guid>>()
+            .AddEntityFrameworkStores<ApplicationDbContext>();
+
         builder.Services.AddOpenApi();
 
         builder.Services.Configure<ApiBehaviorOptions>(options =>
