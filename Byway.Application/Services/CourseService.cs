@@ -14,11 +14,13 @@ public class CourseService : ICourseService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IImageService _imageService;
 
-    public CourseService(IUnitOfWork unitOfWork, IMapper mapper)
+    public CourseService(IUnitOfWork unitOfWork, IMapper mapper,IImageService imageService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _imageService = imageService;
     }
 
     public async Task<PaginationModel<List<CourseListToReturnDto>>> GetAllCoursesAsync(CourseQueryModel courseQueryModel)
@@ -33,18 +35,6 @@ public class CourseService : ICourseService
         var level = courseQueryModel.Level?.ToLower();
         var categoryId = courseQueryModel.CategoryId;
 
-        //Func<IQueryable<Course>, IQueryable<Course>> query = query => query
-        //        .Where(c => cost == 0 && c.Cost <= cost)
-        //        .Where(c => rate == 0 && c.Rate <= rate)
-        //        .Where(c => !string.IsNullOrEmpty(name) && c.Name.Contains(name))
-        //        .Where(c => !string.IsNullOrEmpty(level) && c.Level.ToString().ToLower() == level)
-        //        .Where(c => categoryId != Guid.Empty && c.CategoryId == categoryId)
-        //        .Where(c => totalHours == 0 && c.TotalHours <= totalHours)
-        //        .Skip((pageNumber - 1) * pageSize).Take(pageSize)
-        //        .OrderByDescending(c => c.CreatedAt)
-        //        .Include(c => c.Lectures)
-        //        .Include(c => c.Instructor)
-        //        .Include(c => c.Category);
         Func<IQueryable<Course>, IQueryable<Course>> query = q =>
         {
             if (cost > 0)
@@ -93,7 +83,9 @@ public class CourseService : ICourseService
     public async Task<ServiceResultModel<CourseToReturnDto>> GetCourseByIdAsync(Guid id)
     {
         if (id == Guid.Empty) throw new BadRequestException("Invalid ID");
+
         var courseRepository = _unitOfWork.GetRepository<Course>();
+
         Func<IQueryable<Course>, IQueryable<Course>> query =
                 q => q.Include(c => c.Category)
                     .Include(c => c.Lectures)
@@ -110,14 +102,21 @@ public class CourseService : ICourseService
     {
         var courseRepository = _unitOfWork.GetRepository<Course>();
         var course = _mapper.Map<Course>(courseDto);
+
         await courseRepository.AddAsync(course);
+
+        if(courseDto.Image is not null)
+            course.ImageUrl = await _imageService.UploadImageAsync(courseDto.Image, course.Id);
         var result = await _unitOfWork.CompleteAsync();
+
         if (result <= 0)
             throw new Exception("Failed to create course");
+
         var newCourse = await courseRepository.GetByIdAsync(course.Id,
             q => q.Include(c => c.Category)
                 .Include(c => c.Lectures)
                 .Include(c => c.Instructor));
+
         return ServiceResultModel<CourseToReturnDto>.Success(
             _mapper.Map<CourseToReturnDto>(course), "Course created successfully");
     }
@@ -125,18 +124,29 @@ public class CourseService : ICourseService
     public async Task<ServiceResultModel<CourseToReturnDto>> UpdateCourseAsync(Guid id, CourseDto courseDto)
     {
         if (id == Guid.Empty) throw new BadRequestException("Invalid ID");
+
         var courseRepository = _unitOfWork.GetRepository<Course>();
+
         var existingCourse = await courseRepository.GetByIdAsync(id)
             ?? throw new NotFoundException("Course not found");
+
         _mapper.Map(courseDto, existingCourse);
+
         courseRepository.Update(existingCourse);
+
+        if(courseDto.Image is not null)
+            existingCourse.ImageUrl = await _imageService.UpdateImageAsync(courseDto.Image, existingCourse.Id);
+
         var result = await _unitOfWork.CompleteAsync();
+
         if (result <= 0)
             throw new Exception("Failed to update course");
+
         var updatedCourse = await courseRepository.GetByIdAsync(id,
             q => q.Include(c => c.Category)
                 .Include(c => c.Lectures)
                 .Include(c => c.Instructor));
+
         return ServiceResultModel<CourseToReturnDto>.Success(
             _mapper.Map<CourseToReturnDto>(updatedCourse), "Course updated successfully");
     }
@@ -144,10 +154,17 @@ public class CourseService : ICourseService
     public async Task<ServiceResultModel<bool>> DeleteCourseAsync(Guid id)
     {
         var courseRepository = _unitOfWork.GetRepository<Course>();
+
         var existingCourse = await courseRepository.GetByIdAsync(id)
             ?? throw new NotFoundException("Course not found");
+
         courseRepository.Delete(existingCourse);
+
+        if(existingCourse.ImageUrl is not null)
+            await _imageService.DeleteImageAsync(existingCourse.Id);
+
         var result = await _unitOfWork.CompleteAsync();
+
         if (result <= 0)
             throw new Exception("Failed to delete course");
         return ServiceResultModel<bool>.Success(true, "Course deleted successfully");

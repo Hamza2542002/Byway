@@ -1,5 +1,6 @@
 using Byway.Application.Services;
 using Byway.Core.Dtos.Instructor;
+using Byway.Core.Helpers;
 using Byway.Core.IRepositories;
 using Byway.Core.IServices;
 using Byway.Core.Profiles;
@@ -33,6 +34,9 @@ public class Program
 
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+        builder.Services.AddScoped<IImageService, ImageService>();
+        builder.Services.Configure<CloudinatuConfiguration>(builder.Configuration.GetSection("CloudinarySettings"));
+        
         builder.Services.AddOpenApi();
 
         builder.Services.Configure<ApiBehaviorOptions>(options =>

@@ -15,11 +15,13 @@ public class InstructorService : IInstructorService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IImageService _imageService;
 
-    public InstructorService(IUnitOfWork unitOfWork, IMapper mapper)
+    public InstructorService(IUnitOfWork unitOfWork, IMapper mapper,IImageService imageService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _imageService = imageService;
     }
 
     public async Task<PaginationModel<List<InstructorToReturnDto>>> GetPaginatedInstructors(InstructorQueryModel instructorQueryModel)
@@ -72,36 +74,57 @@ public class InstructorService : IInstructorService
     }
     public async Task<ServiceResultModel<InstructorToReturnDto>> CreateInstructor(InstructorDto instructorDto)
     {
-        //var validatoe = 
         IGenericRepository<Instructor>? instructorRepo = _unitOfWork.GetRepository<Instructor>();
+
         Instructor? instructor = _mapper.Map<Instructor>(instructorDto);
-        instructor.ImageUrl = "https://www.istockphoto.com/photos/user-profile"; // use the cloudinary service to upload image and get url
+
         await instructorRepo.AddAsync(instructor);
+
+        if (instructorDto.Image is not null)
+            instructor.ImageUrl = await _imageService.UploadImageAsync(instructorDto.Image,instructor.Id);
+        instructor.ImageUrl = "https://www.istockphoto.com/photos/user-profile";
+
         await _unitOfWork.CompleteAsync();
+
         return ServiceResultModel<InstructorToReturnDto>
             .Success(_mapper.Map<InstructorToReturnDto>(instructor), "Instructor Created Successfully");
     }
     public async Task<ServiceResultModel<InstructorToReturnDto>> UpdateInstructor(Guid id, InstructorDto instructorDto)
     {
         var instructorRepo = _unitOfWork.GetRepository<Instructor>();
+
         var instructor = await instructorRepo.GetByIdAsync(id)
             ?? throw new NotFoundException("Instructor not found");
+
         _mapper.Map(instructorDto,instructor);
+
         instructorRepo.Update(instructor);
+
+        if (instructorDto.Image is not null)
+            instructor.ImageUrl = await _imageService.UpdateImageAsync(instructorDto.Image, id);
+
         await _unitOfWork.CompleteAsync();
+
         return ServiceResultModel<InstructorToReturnDto>
             .Success(_mapper.Map<InstructorToReturnDto>(instructor), "Instructor Updated Successfully");
     }
     public async Task<ServiceResultModel<bool>> DeleteInstructor(Guid id)
     {
         var instructorRepo = _unitOfWork.GetRepository<Instructor>();
+
         var instructor = await instructorRepo.GetByIdAsync(id)
             ?? throw new NotFoundException("Instructor not found");
+
         var courseRepo = _unitOfWork.GetRepository<Course>();
+
         if(await courseRepo.GetOneAsync(c => c.InstructorId == id) is not null)
             throw new BadRequestException("Instructor cannot be deleted as he / she has courses");
+
         instructorRepo.Delete(instructor);
+        await _imageService.DeleteImageAsync(id);
+
         await _unitOfWork.CompleteAsync();
+
         return ServiceResultModel<bool>
             .Success(true, "Instructor Deleted Successfully");
     }
