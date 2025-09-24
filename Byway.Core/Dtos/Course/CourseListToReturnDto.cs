@@ -12,7 +12,7 @@ public class CourseListToReturnDto
     public double TotalHours { get; set; }
     public double Rate { get; set; }
     public string? Certification { get; set; }
-    public CourseLevel Level { get; set; }
+    public string? Level { get; set; }
     public Guid InstructorId { get; set; }
     public string? InstructorName { get; set; }
     public Guid CategoryId { get; set; }

@@ -33,37 +33,46 @@ public class CourseService : ICourseService
         var level = courseQueryModel.Level?.ToLower();
         var categoryId = courseQueryModel.CategoryId;
 
-        Func<IQueryable<Course>, IQueryable<Course>> query = query => query
-                .Skip((pageNumber - 1) * pageSize).Take(pageSize)
+        //Func<IQueryable<Course>, IQueryable<Course>> query = query => query
+        //        .Where(c => cost == 0 && c.Cost <= cost)
+        //        .Where(c => rate == 0 && c.Rate <= rate)
+        //        .Where(c => !string.IsNullOrEmpty(name) && c.Name.Contains(name))
+        //        .Where(c => !string.IsNullOrEmpty(level) && c.Level.ToString().ToLower() == level)
+        //        .Where(c => categoryId != Guid.Empty && c.CategoryId == categoryId)
+        //        .Where(c => totalHours == 0 && c.TotalHours <= totalHours)
+        //        .Skip((pageNumber - 1) * pageSize).Take(pageSize)
+        //        .OrderByDescending(c => c.CreatedAt)
+        //        .Include(c => c.Lectures)
+        //        .Include(c => c.Instructor)
+        //        .Include(c => c.Category);
+        Func<IQueryable<Course>, IQueryable<Course>> query = q =>
+        {
+            if (cost > 0)
+                q = q.Where(c => c.Cost <= cost);
+
+            if (rate > 0)
+                q = q.Where(c => c.Rate <= rate);
+
+            if (!string.IsNullOrEmpty(name))
+                q = q.Where(c => c.Name.Contains(name));
+
+            if (!string.IsNullOrEmpty(level))
+                q = q.Where(c => c.Level.ToString().ToLower() == level);
+
+            if (categoryId != Guid.Empty)
+                q = q.Where(c => c.CategoryId == categoryId);
+
+            if (totalHours > 0)
+                q = q.Where(c => c.TotalHours <= totalHours);
+
+            return q
                 .OrderByDescending(c => c.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .Include(c => c.Lectures)
                 .Include(c => c.Instructor)
                 .Include(c => c.Category);
-        
-        if (!string.IsNullOrEmpty(name))
-        {
-            query = (query => query.Where(c => c.Name!.Contains(name)));
-        }
-        if (categoryId != Guid.Empty)
-        {
-            query = (query => query.Where(c => c.CategoryId == categoryId));
-        }
-        if (totalHours > 0)
-        {
-            query = (query => query.Where(c => c.TotalHours <= totalHours));
-        }
-        if (cost > 0)
-        {
-            query = (query => query.Where(c => c.Cost <= cost));
-        }
-        if (rate > 0)
-        {
-            query = (query => query.Where(c => c.Rate == rate));
-        }
-        if (!string.IsNullOrEmpty(level))
-        {
-            query = (query => query.Where(c => c.Level.ToString().ToLower() == level));
-        }
+        };
 
         var totalRecords = await courseRepository.GetCountAsync(query);
 

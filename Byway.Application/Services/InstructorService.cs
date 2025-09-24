@@ -48,7 +48,7 @@ public class InstructorService : IInstructorService
         return new PaginationModel<List<InstructorToReturnDto>>
         {
             PageNumber = pageNumber,
-            PageSize = pageSize,
+            PageSize = instructors.Count,
             TotalPages = totalPages,
             TotalRecords = totalRecords,
             Data = _mapper.Map<List<InstructorToReturnDto>>(instructors),
