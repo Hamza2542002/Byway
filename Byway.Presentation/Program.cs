@@ -37,6 +37,9 @@ public class Program
         builder.Services.AddScoped<IImageService, ImageService>();
         builder.Services.Configure<CloudinatuConfiguration>(builder.Configuration.GetSection("CloudinarySettings"));
         
+        builder.Services.AddScoped<IEmailService, EmailService>();
+        builder.Services.Configure<EmailConfiguration>(builder.Configuration.GetSection("EmailConfiguration"));
+        
         builder.Services.AddOpenApi();
 
         builder.Services.Configure<ApiBehaviorOptions>(options =>
