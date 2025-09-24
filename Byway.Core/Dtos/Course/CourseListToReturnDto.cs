@@ -2,7 +2,7 @@
 
 namespace Byway.Core.Dtos.Course;
 
-public class CourseToReturnDto
+public class CourseListToReturnDto
 {
     public Guid Id { get; set; }
     public string? Name { get; set; }
@@ -19,5 +19,5 @@ public class CourseToReturnDto
     public string? CategoryName { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-    public List<CourseLectureToReturnDto>? Lectures { get; set; }
+    public int LecturesCount { get; set; }
 }

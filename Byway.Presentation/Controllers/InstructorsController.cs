@@ -65,6 +65,7 @@ namespace Byway.Presentation.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteInstructor([FromRoute] Guid id)
         {
+            if (id == Guid.Empty) throw new CustomeValidationEception("Invalid ID");
             var result = await _instructorService.DeleteInstructor(id);
             return Ok(result);
         }
