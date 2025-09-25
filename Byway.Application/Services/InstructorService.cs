@@ -27,7 +27,8 @@ public class InstructorService : IInstructorService
     public async Task<PaginationModel<List<InstructorToReturnDto>>> GetPaginatedInstructors(InstructorQueryModel instructorQueryModel)
     {
         var instructoRepo = _unitOfWork.GetRepository<Instructor>();
-
+        var enrollmentRepo = _unitOfWork.GetRepository<CourseEnrollment>();
+        var courseRepo = _unitOfWork.GetRepository<Course>();
         var pageNumber = instructorQueryModel.Page < 1 ? 1 : instructorQueryModel.Page;
         var pageSize = instructorQueryModel.PageSize < 1 ? 10 : instructorQueryModel.PageSize;
         var search = instructorQueryModel.Search;
@@ -44,9 +45,26 @@ public class InstructorService : IInstructorService
         }
 
         var instructors = await instructoRepo.GetAllAsync(query);
+        var enrollments = await enrollmentRepo.GetAllAsync();
+        var courses = await courseRepo.GetAllAsync();
+        var instructorsWithStrudentCount = from Instructor i in instructors
+                          join Course c in courses
+                          on i.Id equals c.InstructorId
+                          join CourseEnrollment e in enrollments
+                          on c?.Id equals e.CourseId
+                          group i by new { i.Id, i.Name, i.Description, i.Rate, i.JobTitle } into g
+                          select new
+                          {
+                              g.Key.Id,
+                              g.Key.Name,
+                              g.Key.Description,
+                              g.Key.Rate,
+                              g.Key.JobTitle,
+                              EnrollmentCount = g.Count(e => e != null)
+                          };
         var totalRecords = await instructoRepo.GetCountAsync();
         var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
-
+        var dataToreturn = _mapper.Map<List<InstructorToReturnDto>>(instructors);
         return new PaginationModel<List<InstructorToReturnDto>>
         {
             PageNumber = pageNumber,
