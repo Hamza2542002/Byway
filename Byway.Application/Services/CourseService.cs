@@ -173,4 +173,40 @@ public class CourseService : ICourseService
             throw new Exception("Failed to delete course");
         return ServiceResultModel<bool>.Success(true, "Course deleted successfully");
     }
+
+    public async Task<ServiceResultModel<List<CourseListToReturnDto>>> Search(CourseSearchModel courseSearchModel)
+    {
+        IGenericRepository<Course>? courseRepository = _unitOfWork.GetRepository<Course>();
+        IGenericRepository<Category>? categoryRepository = _unitOfWork.GetRepository<Category>();
+
+        if (courseRepository == null || categoryRepository == null)
+            throw new Exception("Repository not found");
+        if (string.IsNullOrEmpty(courseSearchModel.Name) && string.IsNullOrEmpty(courseSearchModel.Category))   
+            throw new BadRequestException("At least one search parameter (Name or Category) must be provided.");
+
+        List<Guid>? categories = [.. (await categoryRepository
+            .GetAllAsync(q => q.Where(e => e.Name != null &&  e.Name.Contains(courseSearchModel.Category ?? ""))))
+            .Select(e => e.Id)];
+
+        Func<IQueryable<Course>, IQueryable<Course>> query = q =>
+        {
+            if (!string.IsNullOrEmpty(courseSearchModel.Name))
+                q = q.Where(c => c.Name !=  null && c.Name.Contains(courseSearchModel.Name));
+            if (!string.IsNullOrEmpty(courseSearchModel.Category))
+                q = q.Where(c => categories.Contains(c.CategoryId));
+
+            return q
+                .Take(courseSearchModel.Limit)
+                .Include(c => c.Lectures)
+                .Include(c => c.Instructor)
+                .Include(c => c.Category);
+        };
+        IReadOnlyList<Course>? courses = await courseRepository.GetAllAsync(query);
+        return new ServiceResultModel<List<CourseListToReturnDto>>()
+        {
+            Data = _mapper.Map<List<CourseListToReturnDto>>(courses),
+            IsSuccess = true,
+            Message = "Courses retrieved Successfully",
+        };
+    }
 }

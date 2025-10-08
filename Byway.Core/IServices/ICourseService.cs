@@ -11,4 +11,5 @@ public interface ICourseService
     Task<ServiceResultModel<CourseToReturnDto>> CreateCourseAsync(CourseDto courseDto);
     Task<ServiceResultModel<CourseToReturnDto>> UpdateCourseAsync(Guid id, CourseDto courseDto);
     Task<ServiceResultModel<bool>> DeleteCourseAsync(Guid id);
+    Task<ServiceResultModel<List<CourseListToReturnDto>>> Search(CourseSearchModel courseSearchModel);
 }
