@@ -8,5 +8,5 @@ public class InstructorToReturnDto
     public string? ImageUrl { get; set; }
     public double Rate { get; set; }
     public string? JobTitle { get; set; }
-    public int StudentsNumber { get; set; }
+    public int StudentsCount { get; set; }
 }

@@ -1,6 +1,4 @@
-﻿using Byway.Core.Entities.Enums;
-
-namespace Byway.Core.Dtos.Course;
+﻿namespace Byway.Core.Dtos.Course;
 
 public class CourseToReturnDto
 {
@@ -12,12 +10,12 @@ public class CourseToReturnDto
     public double TotalHours { get; set; }
     public double Rate { get; set; }
     public string? Certification { get; set; }
-    public CourseLevel Level { get; set; }
-    public Guid InstructorId { get; set; }
-    public string? InstructorName { get; set; }
-    public Guid CategoryId { get; set; }
-    public string? CategoryName { get; set; }
+    public string? Level { get; set; }
+    public CategoryDto? Category { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public List<CourseLectureToReturnDto>? Lectures { get; set; }
+    public List<CourseListToReturnDto> RelatedCourses { get; set; } = [];
+    public CourseInstructorDto? Instructor { get; set; }
+    public List<CourseReviewDto> Reviews { get; set; } = [];
 }

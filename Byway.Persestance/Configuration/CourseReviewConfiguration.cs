@@ -17,7 +17,7 @@ internal class CourseReviewConfiguration : IEntityTypeConfiguration<CourseReview
             .WithMany()
             .HasForeignKey(e => e.UserId);
         builder.HasOne(e => e.Course)
-            .WithMany()
+            .WithMany(e => e.Reviews)
             .HasForeignKey(e => e.CourseId);
 
     }

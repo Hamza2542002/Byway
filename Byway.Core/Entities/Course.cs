@@ -20,4 +20,5 @@ public class Course : BaseEntity
 
     public List<CourseLecture>? Lectures { get; set; }
     public List<CourseEnrollment>? Enrollments { get; set; }
+    public List<CourseReview>? Reviews { get; set; }
 }

@@ -43,35 +43,24 @@ public class InstructorService : IInstructorService
         {
             query += (q => q.Where(i => i.JobTitle == jobTitle));
         }
+        if (instructorQueryModel.Rate > 0)
+        {
+            query += (q => q.Where(i => i.Rate >= instructorQueryModel.Rate));
+        }
 
         var instructors = await instructoRepo.GetAllAsync(query);
-        var enrollments = await enrollmentRepo.GetAllAsync();
-        var courses = await courseRepo.GetAllAsync();
-        var instructorsWithStrudentCount = from Instructor i in instructors
-                          join Course c in courses
-                          on i.Id equals c.InstructorId
-                          join CourseEnrollment e in enrollments
-                          on c?.Id equals e.CourseId
-                          group i by new { i.Id, i.Name, i.Description, i.Rate, i.JobTitle } into g
-                          select new
-                          {
-                              g.Key.Id,
-                              g.Key.Name,
-                              g.Key.Description,
-                              g.Key.Rate,
-                              g.Key.JobTitle,
-                              EnrollmentCount = g.Count(e => e != null)
-                          };
+
         var totalRecords = await instructoRepo.GetCountAsync();
         var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
         var dataToreturn = _mapper.Map<List<InstructorToReturnDto>>(instructors);
+        dataToreturn.ForEach(e => e.StudentsCount = GetStudentCount(e.Id).Result);
         return new PaginationModel<List<InstructorToReturnDto>>
         {
             PageNumber = pageNumber,
             PageSize = instructors.Count,
             TotalPages = totalPages,
             TotalRecords = totalRecords,
-            Data = _mapper.Map<List<InstructorToReturnDto>>(instructors),
+            Data = dataToreturn,
             IsSuccess = true,
             Message = "Instructors retrieved successfully"
         };
@@ -166,5 +155,11 @@ public class InstructorService : IInstructorService
 
         return ServiceResultModel<bool>
             .Success(true, "Instructor Deleted Successfully");
+    }
+    private async Task<int> GetStudentCount(Guid insId)
+    {
+        var courseRepo = _unitOfWork.GetRepository<Course>();
+        var enrollments = await courseRepo.GetAllAsync(q => q.Where(c => c.InstructorId == insId).Include(c => c.Enrollments));
+        return enrollments.Count;
     }
 }

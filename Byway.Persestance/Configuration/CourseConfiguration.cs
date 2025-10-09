@@ -36,5 +36,6 @@ internal class CourseConfiguration : IEntityTypeConfiguration<Course>
             .WithMany()
             .HasForeignKey(c => c.CategoryId)
             .OnDelete(DeleteBehavior.NoAction);
+            
     }
 }

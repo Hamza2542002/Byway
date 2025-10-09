@@ -26,14 +26,16 @@ public class CourseService : ICourseService
     public async Task<PaginationModel<List<CourseListToReturnDto>>> GetAllCoursesAsync(CourseQueryModel courseQueryModel)
     {
         var courseRepository = _unitOfWork.GetRepository<Course>();
-        var pageNumber = courseQueryModel.PageNumber;
-        var pageSize = courseQueryModel.PageSize;
+        var pageNumber = courseQueryModel.PageNumber == 0 ? 1 : courseQueryModel.PageNumber;
+        var pageSize = courseQueryModel.PageSize  == 0 ? 10 : courseQueryModel.PageSize;
         var totalHours = courseQueryModel.TotalHours;
         var name = courseQueryModel.Name;
         var cost = courseQueryModel.Cost;
         var rate = courseQueryModel.Rate;
         var level = courseQueryModel.Level?.ToLower();
-        var categoryId = courseQueryModel.CategoryId;
+        var categoryId = courseQueryModel.CategoryId?.Split(',') ?? null;
+        var minLectureNum = courseQueryModel.MinLectureNum;
+        var maxLectureNum = courseQueryModel.MaxLectureNum;
 
         Func<IQueryable<Course>, IQueryable<Course>> query = q =>
         {
@@ -41,7 +43,7 @@ public class CourseService : ICourseService
                 q = q.Where(c => c.Cost <= cost);
 
             if (rate > 0)
-                q = q.Where(c => c.Rate <= rate);
+                q = q.Where(c => c.Rate >= rate);
 
             if (!string.IsNullOrEmpty(name))
                 q = q.Where(c => c.Name.Contains(name));
@@ -49,11 +51,14 @@ public class CourseService : ICourseService
             if (!string.IsNullOrEmpty(level))
                 q = q.Where(c => c.Level.ToString().ToLower() == level);
 
-            if (categoryId != Guid.Empty)
-                q = q.Where(c => c.CategoryId == categoryId);
+            if (categoryId is not null)
+                q = q.Where(c =>  categoryId.Contains(c.CategoryId.ToString()));
 
             if (totalHours > 0)
                 q = q.Where(c => c.TotalHours <= totalHours);
+
+            if (minLectureNum > 0 && maxLectureNum > 0)
+                q = q.Where(c => c.Lectures.Count >= minLectureNum && c.Lectures.Count <= maxLectureNum);
 
             return q
                 .OrderByDescending(c => c.CreatedAt)
@@ -94,8 +99,14 @@ public class CourseService : ICourseService
         var course = await courseRepository.GetByIdAsync(id, query: query)
             ?? throw new NotFoundException("Course not found");
 
+        var relatedCourses = await courseRepository.GetAllAsync(q => q
+            .Where(c => c.CategoryId == course.CategoryId && c.Id != course.Id).Take(4)
+            );
+        var data = _mapper.Map<CourseToReturnDto>(course);
+        data.RelatedCourses = _mapper.Map<List<CourseListToReturnDto>>(relatedCourses.ToList()) ?? [];
+        data.Instructor = await GetCourseInstructor(id, course.InstructorId);
         return ServiceResultModel<CourseToReturnDto>.Success(
-            _mapper.Map<CourseToReturnDto>(course), "Course retrieved successfully");
+            data, "Course retrieved successfully");
     }
 
     public async Task<ServiceResultModel<CourseToReturnDto>> CreateCourseAsync(CourseDto courseDto)
@@ -172,5 +183,31 @@ public class CourseService : ICourseService
         if (result <= 0)
             throw new Exception("Failed to delete course");
         return ServiceResultModel<bool>.Success(true, "Course deleted successfully");
+    }
+
+    private async Task<CourseInstructorDto> GetCourseInstructor(Guid CourseId,Guid insId)
+    {
+        var insRepo = _unitOfWork.GetRepository<Instructor>();
+        var courseRepo = _unitOfWork.GetRepository<Course>();
+        var enrollmentRepo = _unitOfWork.GetRepository<CourseEnrollment>();
+
+        Instructor? instructor = await insRepo.GetByIdAsync(insId);
+        if (instructor is null)
+            return new();
+        var insCourses = await courseRepo.GetAllAsync(c => c
+                                .Where(e => e.InstructorId == insId)
+                                .Include(e => e.Enrollments));
+        var insCourseCount = insCourses.Count;
+        var studentCount = insCourses.Sum(e => e.Enrollments?.Count ?? 0);
+        return new CourseInstructorDto
+        {
+            CourseCount = insCourseCount,
+            Description = instructor.Description,
+            Image = instructor.ImageUrl,
+            JobTitle = instructor.JobTitle.ToString(),
+            Name = instructor.Name,
+            ReviewCount = 0,
+            StudentCount = studentCount,
+        };
     }
 }

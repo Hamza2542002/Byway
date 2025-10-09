@@ -18,4 +18,5 @@ public class CourseDto
     public Guid InstructorId { get; set; }
     public Guid CategoryId { get; set; }
     public List<CourseLectureDto>? Lectures { get; set; }
+    
 }

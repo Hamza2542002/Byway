@@ -4,19 +4,16 @@ using Byway.Persestance.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Byway.Persestance.Data.Migrations
+namespace Byway.Persestance.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250925055524_AddReviews")]
-    partial class AddReviews
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,7 +42,13 @@ namespace Byway.Persestance.Data.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("FirstName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
@@ -228,6 +231,9 @@ namespace Byway.Persestance.Data.Migrations
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Rate")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -454,7 +460,7 @@ namespace Byway.Persestance.Data.Migrations
             modelBuilder.Entity("Byway.Core.Entities.CourseReview", b =>
                 {
                     b.HasOne("Byway.Core.Entities.Course", "Course")
-                        .WithMany()
+                        .WithMany("Reviews")
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -531,6 +537,8 @@ namespace Byway.Persestance.Data.Migrations
                     b.Navigation("Enrollments");
 
                     b.Navigation("Lectures");
+
+                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("Byway.Core.Entities.Instructor", b =>

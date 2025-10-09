@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Byway.Persestance.Data.Migrations
+namespace Byway.Persestance.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,6 +30,8 @@ namespace Byway.Persestance.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -219,13 +221,38 @@ namespace Byway.Persestance.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CourseEnrollment",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CourseId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CourseEnrollment", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CourseEnrollment_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CourseEnrollment_Courses_CourseId",
+                        column: x => x.CourseId,
+                        principalTable: "Courses",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CourseLecture",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Number = table.Column<int>(type: "int", nullable: false),
-                    Time = table.Column<double>(type: "float", nullable: false),
+                    Time = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CourseId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -233,6 +260,34 @@ namespace Byway.Persestance.Data.Migrations
                     table.PrimaryKey("PK_CourseLecture", x => x.Id);
                     table.ForeignKey(
                         name: "FK_CourseLecture_Courses_CourseId",
+                        column: x => x.CourseId,
+                        principalTable: "Courses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CourseReview",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CourseId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Rate = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CourseReview", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CourseReview_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CourseReview_Courses_CourseId",
                         column: x => x.CourseId,
                         principalTable: "Courses",
                         principalColumn: "Id",
@@ -279,9 +334,31 @@ namespace Byway.Persestance.Data.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CourseEnrollment_CourseId_UserId",
+                table: "CourseEnrollment",
+                columns: new[] { "CourseId", "UserId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CourseEnrollment_UserId",
+                table: "CourseEnrollment",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CourseLecture_CourseId",
                 table: "CourseLecture",
                 column: "CourseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CourseReview_CourseId",
+                table: "CourseReview",
+                column: "CourseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CourseReview_UserId_CourseId",
+                table: "CourseReview",
+                columns: new[] { "UserId", "CourseId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Courses_CategoryId",
@@ -313,7 +390,13 @@ namespace Byway.Persestance.Data.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "CourseEnrollment");
+
+            migrationBuilder.DropTable(
                 name: "CourseLecture");
+
+            migrationBuilder.DropTable(
+                name: "CourseReview");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

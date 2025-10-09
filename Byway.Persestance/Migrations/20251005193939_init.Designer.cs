@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Byway.Persestance.Date.Migrations
+namespace Byway.Persestance.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250924192153_addCourseEnrollment")]
-    partial class addCourseEnrollment
+    [Migration("20251005193939_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,7 +45,13 @@ namespace Byway.Persestance.Date.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("FirstName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
@@ -211,6 +217,38 @@ namespace Byway.Persestance.Date.Migrations
                     b.HasIndex("CourseId");
 
                     b.ToTable("CourseLecture", (string)null);
+                });
+
+            modelBuilder.Entity("Byway.Core.Entities.CourseReview", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Rate")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("UserId", "CourseId")
+                        .IsUnique();
+
+                    b.ToTable("CourseReview");
                 });
 
             modelBuilder.Entity("Byway.Core.Entities.Instructor", b =>
@@ -422,6 +460,25 @@ namespace Byway.Persestance.Date.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Byway.Core.Entities.CourseReview", b =>
+                {
+                    b.HasOne("Byway.Core.Entities.Course", "Course")
+                        .WithMany("Reviews")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Byway.Core.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -483,6 +540,8 @@ namespace Byway.Persestance.Date.Migrations
                     b.Navigation("Enrollments");
 
                     b.Navigation("Lectures");
+
+                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("Byway.Core.Entities.Instructor", b =>

@@ -8,4 +8,5 @@ public class CourseReview : BaseEntity
     public Course? Course { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public string? Message { get; set; }
+    public int Rate { get; set; }
 }

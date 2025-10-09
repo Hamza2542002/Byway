@@ -12,5 +12,7 @@ public class CourseQueryModel
     public double TotalHours { get; set; }
     public double Rate { get; set; }
     public string? Level { get; set; }
-    public Guid CategoryId { get; set; }
+    public int MinLectureNum { get; set; }
+    public int MaxLectureNum { get; set; }
+    public string? CategoryId { get; set; }
 }
