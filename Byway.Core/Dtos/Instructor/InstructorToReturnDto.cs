@@ -9,4 +9,5 @@ public class InstructorToReturnDto
     public double Rate { get; set; }
     public string? JobTitle { get; set; }
     public int StudentsCount { get; set; }
+    public string? Role { get; set; } = "admin";
 }

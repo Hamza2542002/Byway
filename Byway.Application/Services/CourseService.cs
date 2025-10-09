@@ -16,7 +16,7 @@ public class CourseService : ICourseService
     private readonly IMapper _mapper;
     private readonly IImageService _imageService;
 
-    public CourseService(IUnitOfWork unitOfWork, IMapper mapper,IImageService imageService)
+    public CourseService(IUnitOfWork unitOfWork, IMapper mapper, IImageService imageService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -27,7 +27,7 @@ public class CourseService : ICourseService
     {
         var courseRepository = _unitOfWork.GetRepository<Course>();
         var pageNumber = courseQueryModel.PageNumber == 0 ? 1 : courseQueryModel.PageNumber;
-        var pageSize = courseQueryModel.PageSize  == 0 ? 10 : courseQueryModel.PageSize;
+        var pageSize = courseQueryModel.PageSize == 0 ? 10 : courseQueryModel.PageSize;
         var totalHours = courseQueryModel.TotalHours;
         var name = courseQueryModel.Name;
         var cost = courseQueryModel.Cost;
@@ -52,7 +52,7 @@ public class CourseService : ICourseService
                 q = q.Where(c => c.Level.ToString().ToLower() == level);
 
             if (categoryId is not null)
-                q = q.Where(c =>  categoryId.Contains(c.CategoryId.ToString()));
+                q = q.Where(c => categoryId.Contains(c.CategoryId.ToString()));
 
             if (totalHours > 0)
                 q = q.Where(c => c.TotalHours <= totalHours);
@@ -104,7 +104,8 @@ public class CourseService : ICourseService
             );
         var data = _mapper.Map<CourseToReturnDto>(course);
         data.RelatedCourses = _mapper.Map<List<CourseListToReturnDto>>(relatedCourses.ToList()) ?? [];
-        data.Instructor = await GetCourseInstructor(id, course.InstructorId);
+        data.Reviews = await GetCourseReviews(course.Id) ?? [];
+        data.Instructor = await GetCourseInstructor(id, course.InstructorId) ?? new();
         return ServiceResultModel<CourseToReturnDto>.Success(
             data, "Course retrieved successfully");
     }
@@ -116,7 +117,7 @@ public class CourseService : ICourseService
 
         await courseRepository.AddAsync(course);
 
-        if(courseDto.Image is not null)
+        if (courseDto.Image is not null)
             course.ImageUrl = await _imageService.UploadImageAsync(courseDto.Image, course.Id);
         var result = await _unitOfWork.CompleteAsync();
 
@@ -145,7 +146,7 @@ public class CourseService : ICourseService
 
         courseRepository.Update(existingCourse);
 
-        if(courseDto.Image is not null)
+        if (courseDto.Image is not null)
             existingCourse.ImageUrl = await _imageService.UpdateImageAsync(courseDto.Image, existingCourse.Id);
 
         var result = await _unitOfWork.CompleteAsync();
@@ -171,11 +172,11 @@ public class CourseService : ICourseService
 
         var enrollmentInstructor = _unitOfWork.GetRepository<CourseEnrollment>();
         var enrollments = await enrollmentInstructor.GetAllAsync(q => q.Where(e => e.CourseId == id));
-        if(enrollments.Any())
+        if (enrollments.Any())
             throw new BadRequestException("Cannot delete course with active enrollments");
         courseRepository.Delete(existingCourse);
 
-        if(existingCourse.ImageUrl is not null)
+        if (existingCourse.ImageUrl is not null)
             await _imageService.DeleteImageAsync(existingCourse.Id);
 
         var result = await _unitOfWork.CompleteAsync();
@@ -185,7 +186,7 @@ public class CourseService : ICourseService
         return ServiceResultModel<bool>.Success(true, "Course deleted successfully");
     }
 
-    private async Task<CourseInstructorDto> GetCourseInstructor(Guid CourseId,Guid insId)
+    private async Task<CourseInstructorDto> GetCourseInstructor(Guid CourseId, Guid insId)
     {
         var insRepo = _unitOfWork.GetRepository<Instructor>();
         var courseRepo = _unitOfWork.GetRepository<Course>();
@@ -210,6 +211,13 @@ public class CourseService : ICourseService
             StudentCount = studentCount,
         };
     }
+    private async Task<List<CourseReviewDto>> GetCourseReviews(Guid courseId)
+    {
+        var reviewRepo = _unitOfWork.GetRepository<CourseReview>();
+        var courseReviews = await reviewRepo.GetAllAsync(q => q.Where(e => e.CourseId == courseId).Include(e => e.User));
+
+        return _mapper.Map<List<CourseReviewDto>>(courseReviews).ToList();
+    }
 
     public async Task<ServiceResultModel<List<CourseListToReturnDto>>> Search(CourseSearchModel courseSearchModel)
     {
@@ -218,7 +226,7 @@ public class CourseService : ICourseService
 
         if (courseRepository == null || categoryRepository == null)
             throw new Exception("Repository not found");
-        if (string.IsNullOrEmpty(courseSearchModel.Name) && string.IsNullOrEmpty(courseSearchModel.Category))   
+        if (string.IsNullOrEmpty(courseSearchModel.Name) && string.IsNullOrEmpty(courseSearchModel.Category))
             throw new BadRequestException("At least one search parameter (Name or Category) must be provided.");
 
         List<Guid>? categories = [.. (await categoryRepository
@@ -228,7 +236,7 @@ public class CourseService : ICourseService
         Func<IQueryable<Course>, IQueryable<Course>> query = q =>
         {
             if (!string.IsNullOrEmpty(courseSearchModel.Name))
-                q = q.Where(c => c.Name !=  null && c.Name.Contains(courseSearchModel.Name));
+                q = q.Where(c => c.Name != null && c.Name.Contains(courseSearchModel.Name));
             if (!string.IsNullOrEmpty(courseSearchModel.Category))
                 q = q.Where(c => categories.Contains(c.CategoryId));
 

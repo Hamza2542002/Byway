@@ -34,7 +34,8 @@ public class AuthService : IAuthService
             throw new BadRequestException("Invalid Login Attempt");
 
         var token = await _tokenService.CreateJWTToken(user);
-
+        var data = _mapper.Map<UserDto>(user);
+        data.Role = (await _userManager.GetRolesAsync(user)).ToList().FirstOrDefault();
         var authModel = new AuthModel
         {
             User = _mapper.Map<UserDto>(user),

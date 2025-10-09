@@ -38,6 +38,7 @@ public class Program
         builder.Services.AddScoped<IInstructorService, InstructorService>();
         builder.Services.AddScoped<ICourseService, CourseService>();
         builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
+        builder.Services.AddScoped<ICategoryService, CategoryService>();
 
         builder.Services.AddFluentValidationAutoValidation();
         builder.Services.AddValidatorsFromAssemblyContaining<AddInstructorValidator>();

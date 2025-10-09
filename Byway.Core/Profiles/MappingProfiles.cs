@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Byway.Core.Auth;
-using Byway.Core.Dtos;
+using Byway.Core.Dtos.Category;
 using Byway.Core.Dtos.Course;
 using Byway.Core.Dtos.Instructor;
 using Byway.Core.Entities;
@@ -28,5 +28,10 @@ public class MappingProfiles : Profile
         CreateMap<CourseLecture,CourseLectureToReturnDto>();
 
         CreateMap<ApplicationUser, UserDto>();
+        CreateMap<CourseReview, CourseReviewDto>()
+            .ForMember(des => des.Image, o => o.MapFrom(s => s.User.ImageUrl))
+            .ForMember(des => des.UserName, o => o.MapFrom(s => s.User.UserName));
+
+        CreateMap<Category, CategoryToReturnDto>();
     }
 }

@@ -55,6 +55,21 @@ namespace Byway.Presentation.Controllers
 
             return Ok(result);
         }
+        [HttpPost("admin/login")]
+        public async Task<IActionResult> AdminLogin(LoginDTO model)
+        {
+            var validationResult = await _loginValidator.ValidateAsync(model);
+            if (!validationResult.IsValid)
+            {
+                throw new CustomeValidationEception()
+                {
+                    Errors = [.. validationResult.Errors.Select(e => e.ErrorMessage)]
+                };
+            }
+            var result = await _authService.LoginAsync(model);
+
+            return Ok(result);
+        }
 
     }
 }
